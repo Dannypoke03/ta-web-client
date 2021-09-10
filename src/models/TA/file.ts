@@ -2,7 +2,7 @@ export interface File {
     FileId: string;
     Intent: Intentions;
     Compressed: boolean;
-    Data: string;
+    Data: any;
 }
 
 export enum Intentions {

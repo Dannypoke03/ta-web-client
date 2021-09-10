@@ -12,7 +12,7 @@ export class Packet {
     constructor(specificPacket: any, type: PacketType) {
         this.Type = type;
         this.SpecificPacket = specificPacket;
-
+        this.Size = JSON.stringify(this).length;
     }
 }
 

@@ -4,7 +4,11 @@
 	import jsQR from "jsqr";
 	import { onMount } from "svelte";
 	import type { Point } from "jsqr/dist/locator";
+	// let QRious = require("qrious");
+	import QRious from "qrious";
+	import { QR } from "./controllers/qr";
 	// onMount(() => {});
+	import pako from "pako";
 
 	async function startCapture() {
 		let captureStream = null;
@@ -45,11 +49,16 @@
 						x: square[0],
 						y: square[1],
 					};
-					drawLine(addPoints(code.location.topLeftCorner, topLeft), addPoints(code.location.topRightCorner, topLeft), "#FF3B58");
-					drawLine(addPoints(code.location.topRightCorner, topLeft), addPoints(code.location.bottomRightCorner, topLeft), "#FF3B58");
-					drawLine(addPoints(code.location.bottomRightCorner, topLeft), addPoints(code.location.bottomLeftCorner, topLeft), "#FF3B58");
-					drawLine(addPoints(code.location.bottomLeftCorner, topLeft), addPoints(code.location.topLeftCorner, topLeft), "#FF3B58");
-					console.log(code.data);
+					drawLine(addPoints(code.location.topLeftCorner, topLeft), addPoints(code.location.topRightCorner, topLeft), "#1effe6");
+					drawLine(addPoints(code.location.topRightCorner, topLeft), addPoints(code.location.bottomRightCorner, topLeft), "#1effe6");
+					drawLine(addPoints(code.location.bottomRightCorner, topLeft), addPoints(code.location.bottomLeftCorner, topLeft), "#1effe6");
+					drawLine(addPoints(code.location.bottomLeftCorner, topLeft), addPoints(code.location.topLeftCorner, topLeft), "#1effe6");
+					let center = {
+						x: topLeft.x + (code.location.topLeftCorner.x + code.location.topRightCorner.x) / 2,
+						y: topLeft.y + (code.location.topLeftCorner.y + code.location.bottomLeftCorner.y) / 2,
+					};
+					drawLine(center, addPoints(center, { x: 1, y: 1 }), "red");
+					console.log(code.data, center);
 				} else {
 				}
 			}
@@ -88,15 +97,13 @@
 		var ctxo = overlay.getContext("2d");
 
 		// style the context
-		ctx.strokeStyle = "blue";
+		ctx.strokeStyle = "#6f1876";
 		ctx.lineWidth = 3;
-		ctxo.strokeStyle = "blue";
+		ctxo.strokeStyle = "#6f1876";
 		ctxo.lineWidth = 3;
 
 		var offsetX = canvas.offsetLeft;
 		var offsetY = canvas.offsetTop;
-		var scrollX = canvas.scrollLeft;
-		var scrollY = canvas.scrollTop;
 
 		var isDown = false;
 		var startX: number;
@@ -111,8 +118,8 @@
 		function handleMouseDown(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			startX = e.clientX - offsetX;
-			startY = e.clientY - offsetY;
+			startX = e.clientX - offsetX + window.scrollX;
+			startY = e.clientY - offsetY + window.scrollY;
 			isDown = true;
 		}
 
@@ -141,8 +148,8 @@
 			if (!isDown) {
 				return;
 			}
-			let mouseX = e.clientX - offsetX;
-			let mouseY = e.clientY - offsetY;
+			let mouseX = e.clientX - offsetX + window.scrollX;
+			let mouseY = e.clientY - offsetY + window.scrollY;
 			var width = mouseX - startX;
 			var height = mouseY - startY;
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -160,13 +167,47 @@
 		canvas.addEventListener("mouseout", handleMouseOut, false);
 	});
 	let squares = [];
+
+	async function genQR() {
+		let qr = new QR("https://github.com/neocotic/qrious");
+		console.log(await qr.imageData);
+		console.log((await qr.base64Data).length);
+		console.log(btoa(pako.deflate(await qr.base64Data, { to: "string" })).length);
+
+		document.getElementById("test").innerHTML = `<img src="${await qr.code.toDataURL()}" />`;
+		document.getElementById("test").appendChild(qr.canvas);
+		// let tmpCanvas: HTMLCanvasElement = document.createElement("canvas");
+		// tmpCanvas.width = 100;
+		// tmpCanvas.height = 100;
+		// let tmpCTX = tmpCanvas.getContext("2d");
+		// tmpCTX.fillStyle = "green";
+		// tmpCTX.fillRect(0, 0, 100, 100);
+		// // document.getElementById("test").innerHTML += `<img src="${tmpCanvas.toDataURL()}" />`;
+		// // console.log(_base64ToArrayBuffer(qrCode.toDataURL().replace("data:image/png;base64,", "")));
+		// console.log(_base64ToArrayBuffer(tmpCanvas.toDataURL().replace("data:image/png;base64,", "")));
+	}
+
+	function test2() {
+		let canvas = <HTMLCanvasElement>document.getElementById("test");
+		console.log(canvas);
+		let ctx = canvas.getContext("2d");
+		console.log(ctx);
+		var imageData = ctx.getImageData(0, 0, 100, 100);
+		console.log(imageData);
+		var code = jsQR(imageData.data, imageData.width, imageData.height, {
+			inversionAttempts: "dontInvert",
+		});
+		console.log(code);
+	}
 </script>
 
 <main>
-	<!-- {JSON.stringify(squares)} -->
+	{JSON.stringify(squares)}
 	<Home />
 	<button on:click={test}> test </button>
 	<button on:click={stopCapture}> stop </button>
+	<button on:click={genQR}> sto2 </button>
+	<button on:click={test2}> sto332 </button>
 	<br /><br />
 	<h4>Drag the mouse to create a rectangle</h4>
 	<div id="canvasWrapper">
@@ -174,6 +215,8 @@
 		<canvas id="overlay" width="1200" height="900" />
 		<canvas id="canvas" width="1200" height="900" />
 	</div>
+	<div id="test" />
+	<!-- <canvas id="test" /> -->
 </main>
 
 <style lang="scss">

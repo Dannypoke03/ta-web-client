@@ -21,7 +21,14 @@
 	import type { GameplayParameters } from "../../../models/TA/gameplayParameters";
 	import { PlayerOptions } from "../../../models/TA/playerSpecificSettnigs";
 	import type { PlaySong } from "../../../models/TA/playSong";
-	import { CommandTypes } from "../../../models/TA/command";
+	import { Command, CommandTypes } from "../../../models/TA/command";
+	import { Intentions } from "../../../models/TA/file";
+	import type { File } from "../../../models/TA/file";
+	import { v4 as uuidv4 } from "uuid";
+	import { QR } from "../../../controllers/qr";
+
+	// const pako = require("pako");
+	import pako from "pako";
 
 	const dispatch = createEventDispatcher();
 
@@ -116,7 +123,10 @@
 		$taWS.ws.send(new Packet(SpecificPacket, PacketType.Event));
 	}
 
-	function playSong() {
+	let palyingWithSync = false;
+
+	function playSong(withSync = false) {
+		palyingWithSync = withSync;
 		let gm: GameplayModifiers = { Options: GameOptions.None };
 		for (const modifier of mapOptions) {
 			if (modifier.isSelected) {
@@ -140,7 +150,7 @@
 		let playSong: PlaySong = {
 			GameplayParameters: gameplayParam,
 			FloatingScoreboard: taSongOptions[0].isSelected,
-			StreamSync: false,
+			StreamSync: withSync,
 			DisablePause: taSongOptions[1].isSelected,
 			DisableFail: taSongOptions[2].isSelected,
 		};
@@ -150,8 +160,63 @@
 			Type: PacketType.PlaySong,
 			SpecificPacket: playSong,
 		};
-		console.log(specificPacket);
+
 		$taWS.ws.send(new Packet(specificPacket, PacketType.ForwardingPacket));
+	}
+
+	$: _allInGame(allInGame);
+
+	async function _allInGame(...args) {
+		console.log(allInGame);
+		if (allInGame && palyingWithSync) {
+			let qrCodes = [];
+			for (const player of $curentMatch.Players) {
+				player.StreamDelayMs = 0;
+				player.StreamScreenCoordinates = {
+					x: 0,
+					y: 0,
+				};
+				player.StreamSyncStartMs = 0;
+
+				let qr = new QR(player.UserId);
+
+				let filePacket: File = {
+					FileId: uuidv4(),
+					Compressed: false,
+					Intent: Intentions.ShowPngImmediately,
+					Data: await qr.base64Data,
+				};
+				qrCodes.push({
+					id: player.Id,
+					packet: filePacket,
+				});
+			}
+			for (const player of $curentMatch.Players) {
+				let packet = qrCodes.find((x) => x.id === player.Id);
+				if (packet) {
+					let fPacket: ForwardingPacket = {
+						ForwardTo: [player.Id],
+						Type: PacketType.File,
+						SpecificPacket: packet.packet,
+					};
+					$taWS.ws.send(new Packet(fPacket, PacketType.ForwardingPacket));
+				}
+			}
+		}
+	}
+
+	function showCode() {
+		for (const player of $curentMatch.Players) {
+		}
+		let cPacket: Command = {
+			CommandType: CommandTypes.ScreenOverlay_ShowPng,
+		};
+		let fPacket: ForwardingPacket = {
+			ForwardTo: $curentMatch.Players.map((x) => x.Id),
+			Type: PacketType.File,
+			SpecificPacket: cPacket,
+		};
+		$taWS.ws.send(new Packet(fPacket, PacketType.ForwardingPacket));
 	}
 
 	function returnToMenu() {
@@ -308,10 +373,12 @@
 			</ul>
 		</div>
 		<br />
-		<Button on:click={playSong} disabled={!canPlay} primary text="Play Song" />
+		<Button on:click={() => playSong()} disabled={!canPlay} primary text="Play Song" />
+		<Button on:click={() => playSong(true)} disabled={!canPlay} primary text="Play With Sync" />
 	{/if}
 	{#if allInGame}
 		<Button on:click={returnToMenu} primary text="Return To Menu" />
+		<Button on:click={() => showCode()} primary text="Show Code" />
 	{/if}
 {/if}
 
