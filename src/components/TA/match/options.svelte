@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, getContext } from "svelte";
 	import { clamp, titleCase } from "../../../controllers/common";
 	import { Packet } from "../../../controllers/packet";
 	import type { Characteristic } from "../../../models/TA/characteristic";
@@ -11,7 +11,7 @@
 	import { BeatmapDifficulty } from "../../../models/TA/match";
 	import { DownloadStates, PlayStates } from "../../../models/TA/player";
 	import type { PreviewBeatmapLevel } from "../../../models/TA/previewBeatmapLevel";
-	import { curentMatch, taWS } from "../../../stores/store";
+	import { curentMatch, modal, taWS } from "../../../stores/store";
 	import Button from "../../common/button.svelte";
 	import Checkbox from "../../common/checkbox.svelte";
 	import Input from "../../common/input.svelte";
@@ -22,13 +22,9 @@
 	import { PlayerOptions } from "../../../models/TA/playerSpecificSettnigs";
 	import type { PlaySong } from "../../../models/TA/playSong";
 	import { Command, CommandTypes } from "../../../models/TA/command";
-	import { Intentions } from "../../../models/TA/file";
-	import type { File } from "../../../models/TA/file";
-	import { v4 as uuidv4 } from "uuid";
-	import { QR } from "../../../controllers/qr";
+	import StreamSync from "../../modals/streamSync.svelte";
 
-	// const pako = require("pako");
-	import pako from "pako";
+	const { open } = getContext("simple-modal");
 
 	const dispatch = createEventDispatcher();
 
@@ -127,6 +123,7 @@
 
 	function playSong(withSync = false) {
 		palyingWithSync = withSync;
+
 		let gm: GameplayModifiers = { Options: GameOptions.None };
 		for (const modifier of mapOptions) {
 			if (modifier.isSelected) {
@@ -160,49 +157,12 @@
 			Type: PacketType.PlaySong,
 			SpecificPacket: playSong,
 		};
-
-		$taWS.ws.send(new Packet(specificPacket, PacketType.ForwardingPacket));
-	}
-
-	$: _allInGame(allInGame);
-
-	async function _allInGame(...args) {
-		console.log(allInGame);
-		if (allInGame && palyingWithSync) {
-			let qrCodes = [];
-			for (const player of $curentMatch.Players) {
-				player.StreamDelayMs = 0;
-				player.StreamScreenCoordinates = {
-					x: 0,
-					y: 0,
-				};
-				player.StreamSyncStartMs = 0;
-
-				let qr = new QR(player.UserId);
-
-				let filePacket: File = {
-					FileId: uuidv4(),
-					Compressed: false,
-					Intent: Intentions.ShowPngImmediately,
-					Data: await qr.base64Data,
-				};
-				qrCodes.push({
-					id: player.Id,
-					packet: filePacket,
-				});
-			}
-			for (const player of $curentMatch.Players) {
-				let packet = qrCodes.find((x) => x.id === player.Id);
-				if (packet) {
-					let fPacket: ForwardingPacket = {
-						ForwardTo: [player.Id],
-						Type: PacketType.File,
-						SpecificPacket: packet.packet,
-					};
-					$taWS.ws.send(new Packet(fPacket, PacketType.ForwardingPacket));
-				}
-			}
+		if (withSync) {
+			// $modal
+			open(StreamSync, { playPacket: new Packet(specificPacket, PacketType.ForwardingPacket) });
+			return;
 		}
+		$taWS.ws.send(new Packet(specificPacket, PacketType.ForwardingPacket));
 	}
 
 	function showCode() {

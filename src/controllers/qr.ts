@@ -65,8 +65,16 @@ export class QR {
         })();
     }
 
-    static readQR() {
-
+    static greenImg() {
+        let tmpCanvas: HTMLCanvasElement = document.createElement("canvas");
+        tmpCanvas.width = 100;
+        tmpCanvas.height = 100;
+        let tmpCTX = tmpCanvas.getContext("2d");
+        tmpCTX.fillStyle = "#00FF00";
+        tmpCTX.fillRect(0, 0, 100, 100);
+        // document.getElementById("test").innerHTML += `<img src="${tmpCanvas.toDataURL()}" />`;
+        // console.log(_base64ToArrayBuffer(qrCode.toDataURL().replace("data:image/png;base64,", "")));
+        return tmpCanvas.toDataURL().replace("data:image/png;base64,", "");
     }
 
 }
