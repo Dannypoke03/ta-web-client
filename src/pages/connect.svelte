@@ -12,9 +12,9 @@
 	let pass = "";
 
 	async function connect() {
-		Cookies.set("HostIP", address);
-		Cookies.set("Name", uname);
-		Cookies.set("UserId", uid);
+		Cookies.set("HostIP", address, { sameSite: "strict" });
+		Cookies.set("Name", uname, { sameSite: "strict" });
+		Cookies.set("UserId", uid, { sameSite: "strict" });
 		let client = new TAWebsocket(uname, address, pass);
 		let t = await client.connect();
 		if (t === "Connected") {

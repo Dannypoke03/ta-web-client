@@ -1,5 +1,5 @@
 export function imgErr(e: any) {
-    this.src = "https://scoresaber.com/imports/images/oculus.png";
+    // this.src = "https://scoresaber.com/imports/images/oculus.png";
 }
 
 export function titleCase(str: string): string {

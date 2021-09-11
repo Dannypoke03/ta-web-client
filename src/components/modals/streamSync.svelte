@@ -123,7 +123,6 @@
 				checkingGreen = true;
 				sentGreen = true;
 			} else {
-				// console.log("not checking green anymore");
 				checkingGreen = false;
 			}
 			if (checkingGreen) {
@@ -289,13 +288,15 @@
 				};
 				player.StreamSyncStartMs = 0;
 
-				let qr = new QR(player.UserId);
+				// let qr = new QR(player.UserId);
+				let qr = await QR.createQRCode(player.UserId);
 
 				let filePacket: File = {
 					FileId: uuidv4(),
 					Compressed: false,
 					Intent: Intentions.ShowPngImmediately,
-					Data: await qr.base64Data,
+					// Data: await qr.base64Data,
+					Data: qr.replace("data:image/png;base64,", ""),
 				};
 				qrCodes.push({
 					id: player.Id,

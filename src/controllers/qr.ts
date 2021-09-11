@@ -1,68 +1,39 @@
 import QRious from "qrious";
 
-export class QR {
+export abstract class QR {
 
-    code: any;
-    canvas: HTMLCanvasElement = document.createElement("canvas");
-    private ctx: CanvasRenderingContext2D;
-
-    constructor(value: string) {
-        this.code = new QRious({
-            value: value,
-            level: "H",
-            size: 400
-        });
-        this.canvas.height = 768;
-        this.canvas.width = 1366;
-        this.ctx = this.canvas.getContext("2d");
-        this.ctx.fillStyle = "white";
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        let img = new Image();
-        img.src = this.code.toDataURL();
-        img.onload = () => {
-            this.ctx.drawImage(img,
-                this.canvas.width / 2 - img.width / 2,
-                this.canvas.height / 2 - img.height / 2);
-        }
-    }
-
-    get imageData(): Promise<ImageData> {
+    static async createQRCode(val: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            let logoImg = new Image();
-            logoImg.src = "https://cdn.discordapp.com/emojis/708190925448544306.png?v=1";
-            logoImg.crossOrigin = "anonymous";
-            logoImg.onload = () => {
-                this.ctx.drawImage(logoImg,
-                    this.canvas.width / 2 - logoImg.width / 2,
-                    this.canvas.height / 2 - logoImg.height / 2);
+            let canvas = document.createElement("canvas");
+            let ctx = canvas.getContext("2d");
+            let code = new QRious({
+                value: val,
+                level: "H",
+                size: 300
+            });
+            canvas.height = 768;
+            canvas.width = 1366;
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            let img = new Image();
+            img.src = code.toDataURL();
+            img.onload = async () => {
+                ctx.drawImage(img,
+                    canvas.width / 2 - img.width / 2,
+                    canvas.height / 2 - img.height / 2);
 
-                resolve(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height));
-            };
+                let logoImg = new Image();
+                logoImg.src = await toDataURL(`https://new.scoresaber.com/api/static/avatars/${val}.jpg`);
+                logoImg.crossOrigin = "anonymous";
+                logoImg.onload = () => {
+                    ctx.drawImage(logoImg,
+                        canvas.width / 2 - 50,
+                        canvas.height / 2 - 50, 100, 100);
+                    resolve(canvas.toDataURL());
+                }
+            }
         });
-    }
 
-    get base64(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            let logoImg = new Image();
-            logoImg.src = "https://cdn.discordapp.com/emojis/708190925448544306.png?v=1";
-            logoImg.crossOrigin = "anonymous";
-            logoImg.onload = () => {
-                this.ctx.drawImage(logoImg,
-                    this.canvas.width / 2 - logoImg.width / 2,
-                    this.canvas.height / 2 - logoImg.height / 2);
-                resolve(this.canvas.toDataURL());
-            };
-        });
-    }
-
-    get base64Data() {
-        return (async () => (await this.base64).replace("data:image/png;base64,", ""))();
-    }
-
-    get buffer() {
-        return (async () => {
-            return _base64ToArrayBuffer((await this.base64).replace("data:image/png;base64,", ""))
-        })();
     }
 
     static greenImg() {
@@ -87,4 +58,31 @@ function _base64ToArrayBuffer(base64: string) {
         bytes[i] = binary_string.charCodeAt(i);
     }
     return bytes.buffer;
+}
+
+function getBase64Image(img) {
+    var canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    var dataURL = canvas.toDataURL("image/png");
+    return dataURL;
+}
+
+function toDataURL(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            var reader = new FileReader();
+            reader.onloadend = function () {
+                // callback(reader.result);
+                resolve(reader.result as string)
+            };
+            reader.readAsDataURL(xhr.response);
+        };
+        xhr.open("GET", url);
+        xhr.responseType = "blob";
+        xhr.send();
+    });
 }
