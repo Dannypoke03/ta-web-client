@@ -1,7 +1,7 @@
 <script lang="ts">
 	import jsQR, { QRCode } from "jsqr";
 	import { getContext, onDestroy, onMount } from "svelte";
-	import { Packet, PacketType } from "../../controllers/packet";
+	import { Packet } from "../../controllers/packet";
 	import { QR } from "../../controllers/qr";
 	import type { Point } from "../../models/TA/player";
 	import { curentMatch, taWS } from "../../stores/store";
@@ -11,6 +11,7 @@
 	import type { File } from "../../models/TA/file";
 	import type { ForwardingPacket } from "../../models/TA/forwardingPacket";
 	import { Command, CommandTypes } from "../../models/TA/command";
+	import { PacketType } from "../../models/TA/packetType";
 
 	const { close } = getContext("simple-modal");
 

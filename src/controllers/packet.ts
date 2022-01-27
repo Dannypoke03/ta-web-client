@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import type { PacketType } from "../models/TA/packetType";
 
 export class Packet {
     Size: number = 0;
@@ -14,23 +15,4 @@ export class Packet {
         this.SpecificPacket = specificPacket;
         this.Size = JSON.stringify(this).length;
     }
-}
-
-export enum PacketType {
-    Acknowledgement,
-    Command,
-    Connect,
-    ConnectResponse,
-    Event,
-    File,
-    ForwardingPacket,
-    LoadedSong,
-    LoadSong,
-    PlaySong,
-    Response,
-    ScoreRequest,
-    ScoreRequestResponse,
-    SongFinished,
-    SongList,
-    SubmitScore
 }

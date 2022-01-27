@@ -4,14 +4,13 @@
 	import { Packet } from "../../../controllers/packet";
 	import type { Characteristic } from "../../../models/TA/characteristic";
 	import { EventType, TAEvent } from "../../../models/TA/event";
-	import { PacketType } from "../../../models/TA/forwardingPacket";
 	import type { ForwardingPacket } from "../../../models/TA/forwardingPacket";
 	import { GameOptions, GameplayModifiers } from "../../../models/TA/gameplayModifiers";
 	import type { LoadSong } from "../../../models/TA/loadSong";
 	import { BeatmapDifficulty } from "../../../models/TA/match";
 	import { DownloadStates, PlayStates } from "../../../models/TA/player";
 	import type { PreviewBeatmapLevel } from "../../../models/TA/previewBeatmapLevel";
-	import { curentMatch, modal, taWS } from "../../../stores/store";
+	import { curentMatch, taWS } from "../../../stores/store";
 	import Button from "../../common/button.svelte";
 	import Checkbox from "../../common/checkbox.svelte";
 	import Input from "../../common/input.svelte";
@@ -23,6 +22,7 @@
 	import type { PlaySong } from "../../../models/TA/playSong";
 	import { Command, CommandTypes } from "../../../models/TA/command";
 	import StreamSync from "../../modals/streamSync.svelte";
+	import { PacketType } from "../../../models/TA/packetType";
 
 	const { open } = getContext("simple-modal");
 

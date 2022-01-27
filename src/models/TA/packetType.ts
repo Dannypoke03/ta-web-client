@@ -1,0 +1,21 @@
+export enum PacketType {
+    Acknowledgement,
+    Command,
+    Connect,
+    ConnectResponse,
+    Event,
+    File,
+    ForwardingPacket,
+    LoadedSong,
+    LoadSong,
+    PlaySong,
+    Response,
+    ScoreRequest,
+    ScoreRequestResponse,
+    SendBotMessage,
+    SongFinished,
+    SongList,
+    SubmitScore,
+    Message,
+    MessageResponse
+}

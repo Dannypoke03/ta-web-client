@@ -2,7 +2,6 @@ import { Connect, ConnectTypes } from "../models/TA/connect";
 import { wsHandler } from "./wsClient";
 import Cookies from "js-cookie";
 import { Packet } from "./packet";
-import { PacketType } from "../models/TA/forwardingPacket";
 import type { ConnectResponse } from "../models/TA/connectResponse";
 import { ResponseType } from "../models/TA/response";
 import { get, Unsubscriber } from "svelte/store";
@@ -12,6 +11,7 @@ import type { Player } from "../models/TA/player";
 import { TAClient } from "./taClient";
 import { curentMatch, taWS } from "../stores/store";
 import { v4 as uuidv4 } from "uuid";
+import { PacketType } from "../models/TA/packetType";
 
 export class TAWebsocket {
 
