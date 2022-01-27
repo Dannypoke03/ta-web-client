@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { text } from "svelte/internal";
 	import Button from "../components/common/button.svelte";
 	import Coordinator from "../components/TA/coordinator.svelte";
-	import Match from "../components/TA/matchCard.svelte";
 	import Player from "../components/TA/player.svelte";
-	import { taWS } from "../stores/store";
+	import { fakePlayers, taWS } from "../stores/store";
 	import type { Player as IPlayer } from "../models/TA/player";
 	import MatchCard from "../components/TA/matchCard.svelte";
+	import { FakePlayer } from "../controllers/fakePlayer";
+	import TestPlayer from "../components/TA/testPlayer.svelte";
 	$: client = $taWS.client;
 	$: state = $taWS.client.State;
 
@@ -25,6 +25,10 @@
 	function createMatch() {
 		$taWS.createMatch(selectedPlayers);
 		selectedPlayers = [];
+	}
+
+	function createPlayer() {
+		$fakePlayers = new FakePlayer("76561199003505371");
 	}
 </script>
 
@@ -69,7 +73,13 @@
 	<div class="card">
 		<Button text="Disconect" on:click={() => $taWS.disconnect()} />
 	</div>
+	<div>
+		<Button text="Create Player" on:click={() => createPlayer()} />
+	</div>
 </div>
+{#if $fakePlayers}
+	<TestPlayer />
+{/if}
 
 <style lang="scss">
 	.title {

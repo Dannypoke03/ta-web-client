@@ -10,8 +10,9 @@ export class Packet {
     Type: PacketType;
     SpecificPacket: object;
 
-    constructor(specificPacket: any, type: PacketType) {
+    constructor(specificPacket: any, type: PacketType, from: string = uuidv4()) {
         this.Type = type;
+        this.From = from;
         this.SpecificPacket = specificPacket;
         this.Size = JSON.stringify(this).length;
     }

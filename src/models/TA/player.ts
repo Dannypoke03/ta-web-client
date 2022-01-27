@@ -10,6 +10,7 @@ export interface Player extends User {
     Score: number;
     Combo: number;
     Accuracy: number;
+    Misses: number;
     SongPosition: number;
     SongList: SongList;
     ModList: string[];
